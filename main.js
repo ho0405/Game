@@ -16,14 +16,17 @@ let spaceshipY = canvas.height-60
 
 let bulletList = [] //list of saved bullet
 function Bullet() {
-  this.x=0
-  this.y=0
+  this.x=0;
+  this.y=0;
   this.init=function() {
-    this.x = spaceshipX
-    this.y = spaceshipY
+    this.x = spaceshipX + 18;
+    this.y = spaceshipY - 17;
 
-    bulletList.push(this)
-  }
+    bulletList.push(this);
+  };
+  this.update=function(){
+    this.y-= 3;
+  };
 }
 
 function loadimage() {
@@ -98,8 +101,12 @@ function update() {
   if (spaceshipY >= canvas.height-60) {
     spaceshipY = canvas.height-60;
   }  
-  }
-}// update spaceship
+  }// update spaceship
+
+  // calling the function of the updating bullett's y value
+  for(let i = 0; i <bulletList.length;i++) {bulletList[i].update();
+}
+}
 
 function render() {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
@@ -128,4 +135,4 @@ main();
 //2. when bullet is fired, = bullet Y value is --, what is x value of bullet? its spaceship's x value when spacebar is clicked
 //3. all fire bullets are saved in bullet object
 //4. all fire bullets are must have x,y values
-//5. draw render with bullet object
+//5. draw render with bullet objects
