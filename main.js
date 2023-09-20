@@ -9,6 +9,8 @@ canvas.height = 700;
 document.body.appendChild(canvas);
 
 let backgroundImage, spaceshipsImage, enemyImage, bulletImage, gameoverImage;
+let gameOver= false; // when its true, game is over, otherwise false is keep game on
+let score = 0; // the score
 
 //spaceshipslocation
 let spaceshipX = canvas.width/2-30
@@ -21,12 +23,52 @@ function Bullet() {
   this.init=function() {
     this.x = spaceshipX + 18;
     this.y = spaceshipY - 17;
-
+    this.alive=true; // if its true, bullet is alive
     bulletList.push(this);
   };
   this.update=function(){
     this.y-= 3;
   };
+
+  this.checkHit=function(){
+    for(let i=0; i < enemyList.length; i++)
+    {
+      if(
+        this.y <= enemyList[i].y &&
+        this.x >= enemyList[i].x &&
+        this.x <= enemyList[i].x+ 40
+      ) {
+        score++;
+        this.alive = false;
+        enemyList.splice(i, 1);
+        
+      }
+    }
+  };
+}    
+
+function generateRandomValues(min,max){
+  let randomNum = Math.floor(Math.random()*(max-min+1)) + min
+  return randomNum
+}
+
+let enemyList = []
+function Enemy() {
+  this.x=0;
+  this.y=0;
+  this.init=function(){
+    this.y = 0;
+    this.x = generateRandomValues(0,canvas.width-64)
+    enemyList.push(this);
+  };
+  this.update=function(){
+    this.y += 3 // enemy's speed
+
+    if(this.y >= canvas.height - 64){
+      gameOver = true;
+    
+    }
+  }
 }
 
 function loadimage() {
@@ -39,8 +81,8 @@ function loadimage() {
   bulletImage = new Image();
   bulletImage.src = "images/bullet.png";
 
-  gameoverImage = new Image();
-  gameoverImage.src = "images/gameover.png";
+  gameOverImage = new Image();
+  gameOverImage.src = "images/gameover.png";
 
   enemyImage = new Image();
   enemyImage.src = "images/enemy.png";
@@ -74,6 +116,13 @@ function createBullet() {
 
 }
 
+function createEnemy() {
+  const interval = setInterval(function(){
+    let e = new Enemy();
+    e.init();
+  },1000)
+}
+
 function update() {
   if( 39 in keysDown) {
     spaceshipX += 2;
@@ -104,27 +153,51 @@ function update() {
   }// update spaceship
 
   // calling the function of the updating bullett's y value
-  for(let i = 0; i <bulletList.length;i++) {bulletList[i].update();
+  for (let i = 0; i <bulletList.length; i++) {
+    if(bulletList[i].alive){
+      bulletList[i].update();
+      bulletList[i].checkHit();
+    }
+    
 }
+
+  for (let i = 0; i <enemyList.length; i++){
+    enemyList[i].update();
+  }
 }
 
 function render() {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
   ctx.drawImage(spaceshipsImage, spaceshipX, spaceshipY);
+  ctx.fillText(`Score: ${score}` ,20,20);
+  ctx.fillStyle="white";
+  ctx.font="20px Arial";
 
   for(let i=0; i<bulletList.length; i++) {
-    ctx.drawImage(bulletImage, bulletList[i].x, bulletList[i].y);
+    if (bulletList[i].alive) {
+      ctx.drawImage(bulletImage, bulletList[i].x, bulletList[i].y);
+    }
+    
   }
+
+  for(let i=0; i<enemyList.length; i++) {
+    ctx.drawImage(enemyImage, enemyList[i].x, enemyList[i].y);
+}
 }
 
 function main() {
+  if(!gameOver){
   update(); // update location
   render(); // draw
   requestAnimationFrame(main);
+  }else{
+    ctx.drawImage(gameOverImage, 10,100,380,380);
+  }
 }
 
 loadimage();
 setupKeyboardListeners();
+createEnemy();
 main();
 //when clicked arrow keys are pressed
 // spaceships xy values are updated
@@ -136,3 +209,7 @@ main();
 //3. all fire bullets are saved in bullet object
 //4. all fire bullets are must have x,y values
 //5. draw render with bullet objects
+
+//enemy dies when bullet is clicked
+//bullet.y <= enemy.y and bullet.x >= enemy.x and bullet x <= enemy.x + 40 -> hit enemy, bullet is disappeared enemy also disappeared
+
